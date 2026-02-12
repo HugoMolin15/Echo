@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export async function POST(req: Request) {
     try {
         const { priceId } = await req.json();
+
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+        if (!stripeSecretKey) {
+            console.error('STRIPE_SECRET_KEY is not defined');
+            return NextResponse.json(
+                { error: 'Stripe Secret Key is missing. Please add STRIPE_SECRET_KEY to your Vercel Environment Variables.' },
+                { status: 500 }
+            );
+        }
+
+        const stripe = new Stripe(stripeSecretKey);
 
         if (!priceId) {
             return NextResponse.json(
