@@ -1,28 +1,61 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { StarTrailCanvas } from '@/components/ui/star-trail-background';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Link from 'next/link';
+import { login, signup } from './actions';
 
 function SignupContent() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [isLogin, setIsLogin] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
 
     useEffect(() => {
         if (searchParams.get('mode') === 'login') {
             setIsLogin(true);
         }
+        const msg = searchParams.get('message');
+        if (msg) {
+            setMessage(msg);
+        }
     }, [searchParams]);
+
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setIsLoading(true);
+        setError(null);
+        setMessage(null);
+
+        const formData = new FormData(event.currentTarget);
+
+        if (isLogin) {
+            const result = await login(formData);
+            if (result?.error) {
+                setError(result.error);
+                setIsLoading(false);
+            }
+        } else {
+            const result = await signup(formData);
+            if (result?.error) {
+                setError(result.error);
+                setIsLoading(false);
+            } else if (result?.success) {
+                setMessage("Success! Please check your email to confirm your account.");
+                setIsLoading(false);
+            }
+        }
+    }
 
     return (
         <div className="relative min-h-screen bg-black text-white font-sans overflow-hidden flex items-center justify-center">
             {/* Background */}
             <StarTrailCanvas enableTrail={false} />
-
-
 
             {/* Content w/ Glassmorphism Card */}
             <div className="relative z-10 w-full max-w-md p-8">
@@ -45,13 +78,13 @@ function SignupContent() {
                             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-full transition-all duration-300 ease-out ${isLogin ? 'translate-x-full' : 'translate-x-0'}`}
                         ></div>
                         <button
-                            onClick={() => setIsLogin(false)}
+                            onClick={() => { setIsLogin(false); setError(null); setMessage(null); }}
                             className={`flex-1 py-2 text-sm font-medium z-10 transition-colors cursor-pointer ${!isLogin ? 'text-white' : 'text-white/40'}`}
                         >
                             Sign Up
                         </button>
                         <button
-                            onClick={() => setIsLogin(true)}
+                            onClick={() => { setIsLogin(true); setError(null); setMessage(null); }}
                             className={`flex-1 py-2 text-sm font-medium z-10 transition-colors cursor-pointer ${isLogin ? 'text-white' : 'text-white/40'}`}
                         >
                             Login
@@ -65,15 +98,29 @@ function SignupContent() {
                         {isLogin ? 'Enter your details to access your account' : 'Join the spatial audio revolution today'}
                     </p>
 
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-3 rounded-xl mb-6 text-center">
+                            {error}
+                        </div>
+                    )}
+
+                    {message && (
+                        <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs p-3 rounded-xl mb-6 text-center">
+                            {message}
+                        </div>
+                    )}
+
                     {/* Form */}
-                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                    <form className="space-y-4" onSubmit={handleSubmit}>
 
                         {!isLogin && (
                             <div>
                                 <label className="block text-xs font-medium text-white/60 mb-1.5 ml-1">Full Name</label>
                                 <input
+                                    name="full_name"
                                     type="text"
                                     placeholder="Full Name"
+                                    required
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm"
                                 />
                             </div>
@@ -82,8 +129,10 @@ function SignupContent() {
                         <div>
                             <label className="block text-xs font-medium text-white/60 mb-1.5 ml-1">Email Address</label>
                             <input
+                                name="email"
                                 type="email"
                                 placeholder="Email Address"
+                                required
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm"
                             />
                         </div>
@@ -91,8 +140,10 @@ function SignupContent() {
                         <div>
                             <label className="block text-xs font-medium text-white/60 mb-1.5 ml-1">Password</label>
                             <input
+                                name="password"
                                 type="password"
                                 placeholder="Password"
+                                required
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm"
                             />
                             {isLogin && (
@@ -107,7 +158,11 @@ function SignupContent() {
                             )}
                         </div>
 
-                        <button className="w-full bg-white text-black font-bold py-3.5 rounded-full transition-all mt-2 cursor-pointer border border-transparent hover:bg-white/5 hover:text-white hover:border-purple-500/50 hover:backdrop-blur-sm">
+                        <button
+                            disabled={isLoading}
+                            className="w-full bg-white text-black font-bold py-3.5 rounded-full transition-all mt-2 cursor-pointer border border-transparent hover:bg-white/5 hover:text-white hover:border-purple-500/50 hover:backdrop-blur-sm flex items-center justify-center gap-2"
+                        >
+                            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                             {isLogin ? 'Sign In' : 'Create Account'}
                         </button>
 

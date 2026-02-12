@@ -2,10 +2,15 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ArrowRight, Sparkles, AudioWaveform, Zap, Sliders, Radio, Orbit, Code, Network, ChevronDown, Star, Menu, X } from 'lucide-react';
 import { StarTrailCanvas } from './star-trail-background';
+import { User } from '@supabase/supabase-js';
+import { signout } from '@/app/logout/actions';
+import Link from 'next/link';
+import { User as UserIcon } from 'lucide-react';
+import Image from 'next/image';
 
 
 
-const Navigation: React.FC = () => {
+const Navigation: React.FC<{ user: User | null }> = ({ user }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -19,106 +24,165 @@ const Navigation: React.FC = () => {
     }, []);
 
     return (
-        <nav
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${isScrolled || isMenuOpen
-                ? 'bg-black/60 backdrop-blur-xl border-white/20'
-                : 'bg-white/5 backdrop-blur-sm border-white/10'
-                } border rounded-full px-4 py-2 lg:px-6 lg:py-3`}
-        >
-            <div className="flex items-center gap-2 lg:gap-8 justify-start">
-                {/* Logo */}
-                <a href="#" className="flex items-center cursor-pointer shrink-0">
-                    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
-                        <circle cx="16" cy="16" r="15" stroke="white" strokeWidth="1.5" opacity="0.3" />
-                        <circle cx="16" cy="16" r="11" stroke="white" strokeWidth="1.5" opacity="0.5" />
-                        <circle cx="16" cy="16" r="7" stroke="white" strokeWidth="1.5" opacity="0.7" />
-                        <circle cx="16" cy="16" r="3" stroke="white" strokeWidth="1.5" opacity="1" />
-                        <text x="16" y="20" fontSize="12" fontFamily="Arial, sans-serif" fill="white" textAnchor="middle" fontWeight="bold">e</text>
-                    </svg>
-                </a>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+            <nav
+                className={`transition-all duration-300 ${isScrolled || isMenuOpen
+                    ? 'bg-black/60 backdrop-blur-xl border-white/20'
+                    : 'bg-white/5 backdrop-blur-sm border-white/10'
+                    } border rounded-full px-4 py-2 lg:px-6 lg:py-3`}
+            >
+                <div className="flex items-center gap-2 lg:gap-8 justify-start">
+                    {/* Logo */}
+                    <a href="/" className="flex items-center cursor-pointer shrink-0">
+                        <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+                            <circle cx="16" cy="16" r="15" stroke="white" strokeWidth="1.5" opacity="0.3" />
+                            <circle cx="16" cy="16" r="11" stroke="white" strokeWidth="1.5" opacity="0.5" />
+                            <circle cx="16" cy="16" r="7" stroke="white" strokeWidth="1.5" opacity="0.7" />
+                            <circle cx="16" cy="16" r="3" stroke="white" strokeWidth="1.5" opacity="1" />
+                            <text x="16" y="20" fontSize="12" fontFamily="Arial, sans-serif" fill="white" textAnchor="middle" fontWeight="bold">e</text>
+                        </svg>
+                    </a>
 
-                {/* Desktop Navigation Links */}
-                <div className="hidden lg:flex items-center gap-6 whitespace-nowrap">
-                    <a
-                        onClick={(e) => {
-                            e.preventDefault();
-                            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
+                    {/* Desktop Navigation Links */}
+                    <div className="hidden lg:flex items-center gap-6 whitespace-nowrap">
+                        <a
+                            onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
+                        >
+                            Features
+                        </a>
+                        <a
+                            onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
+                        >
+                            Pricing
+                        </a>
+                        {!user && (
+                            <a
+                                href="/signup"
+                                className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
+                            >
+                                Sign Up
+                            </a>
+                        )}
+                    </div>
+
+                    {/* Desktop CTA Button / Logout */}
+                    {user ? (
+                        <button
+                            onClick={() => signout()}
+                            className="hidden lg:block px-3 py-1.5 text-xs lg:px-5 lg:py-2 lg:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <a href="/signup?mode=login" className="hidden lg:block px-3 py-1.5 text-xs lg:px-5 lg:py-2 lg:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap">
+                            Login
+                        </a>
+                    )}
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="lg:hidden px-4 py-2 text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer ml-2"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
-                        Features
-                    </a>
-                    <a
-                        onClick={(e) => {
-                            e.preventDefault();
-                            document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
-                    >
-                        Pricing
-                    </a>
-                    <a
-                        href="/signup"
-                        className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
-                    >
-                        Sign Up
-                    </a>
+                        {isMenuOpen ? 'Close' : 'Menu'}
+                    </button>
                 </div>
 
-                {/* Desktop CTA Button */}
-                <a href="/signup?mode=login" className="hidden lg:block px-3 py-1.5 text-xs lg:px-5 lg:py-2 lg:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap">
-                    Login
-                </a>
+                {/* Mobile Menu Dropdown */}
+                {isMenuOpen && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 mt-2 bg-black border border-white/20 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 lg:hidden">
+                        <a
+                            onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                                setIsMenuOpen(false);
+                            }}
+                            className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                        >
+                            Features
+                        </a>
+                        <a
+                            onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                                setIsMenuOpen(false);
+                            }}
+                            className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                        >
+                            Pricing
+                        </a>
+                        {!user && (
+                            <a
+                                href="/signup"
+                                className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                            >
+                                Sign Up
+                            </a>
+                        )}
+                        {user ? (
+                            <>
+                                <Link
+                                    href="/profile"
+                                    className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                                >
+                                    Profile
+                                </Link>
+                                <button
+                                    onClick={() => signout()}
+                                    className="text-center w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold transition-all cursor-pointer mt-2 hover:bg-white/20"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <a
+                                href="/signup?mode=login"
+                                className="text-center w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold transition-all cursor-pointer mt-2 hover:bg-white/20"
+                            >
+                                Login
+                            </a>
+                        )}
+                    </div>
+                )}
+            </nav>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className="lg:hidden px-4 py-2 text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer ml-2"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+            {/* Avatar Pill */}
+            {user && (
+                <Link
+                    href="/profile"
+                    className={`flex p-1 rounded-full border transition-all duration-300 ${isScrolled
+                        ? 'bg-black/60 backdrop-blur-xl border-white/20'
+                        : 'bg-white/5 backdrop-blur-sm border-white/10'
+                        } hover:border-purple-500/50 group shrink-0`}
                 >
-                    {isMenuOpen ? 'Close' : 'Menu'}
-                </button>
-            </div>
-
-            {/* Mobile Menu Dropdown */}
-            {isMenuOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 mt-2 bg-black border border-white/20 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 lg:hidden">
-                    <a
-                        onClick={(e) => {
-                            e.preventDefault();
-                            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                            setIsMenuOpen(false);
-                        }}
-                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
-                    >
-                        Features
-                    </a>
-                    <a
-                        onClick={(e) => {
-                            e.preventDefault();
-                            document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                            setIsMenuOpen(false);
-                        }}
-                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
-                    >
-                        Pricing
-                    </a>
-                    <a
-                        href="/signup"
-                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
-                    >
-                        Sign Up
-                    </a>
-                    <a
-                        href="/signup?mode=login"
-                        className="text-center w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold transition-all cursor-pointer mt-2 hover:bg-white/20"
-                    >
-                        Login
-                    </a>
-                </div>
+                    <div className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-full overflow-hidden border border-white/10 group-hover:border-purple-500/50 transition-all">
+                        {user.user_metadata?.avatar_url ? (
+                            <Image
+                                src={user.user_metadata.avatar_url}
+                                alt="Avatar"
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                                <UserIcon className="w-6 h-6 text-white/40" />
+                            </div>
+                        )}
+                    </div>
+                </Link>
             )}
-        </nav>
+        </div>
     )
 }
+
 
 const HeroContent: React.FC = () => {
     return (
@@ -918,14 +982,15 @@ const Footer: React.FC = () => {
 
 // --- Main App Component ---
 
-export default function App() {
+export default function App({ user }: { user: User | null }) {
     return (
         <div className="relative w-full bg-black selection:bg-purple-500 selection:text-white">
             {/* Star Canvas - covers entire page */}
             <StarTrailCanvas />
 
             {/* Navigation - always visible across entire site */}
-            <Navigation />
+            <Navigation user={user} />
+
 
             {/* Hero Section */}
             <div className="relative h-screen overflow-hidden z-10">
