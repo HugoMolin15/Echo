@@ -95,6 +95,16 @@ function SignupContent() {
                                 placeholder="Password"
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm"
                             />
+                            {isLogin && (
+                                <div className="mt-2 flex justify-end">
+                                    <Link
+                                        href="/forgot-password"
+                                        className="text-[10px] text-white/40 hover:text-purple-400 transition-colors uppercase tracking-wider font-medium"
+                                    >
+                                        Forgot your password?
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         <button className="w-full bg-white text-black font-bold py-3.5 rounded-full transition-all mt-2 cursor-pointer border border-transparent hover:bg-white/5 hover:text-white hover:border-purple-500/50 hover:backdrop-blur-sm">
