@@ -14,11 +14,7 @@ export async function GET(request: Request) {
         }
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
-            // Priority: NEXT_PUBLIC_URL > origin
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-            const siteUrl = process.env.NEXT_PUBLIC_URL || origin
-
-            return NextResponse.redirect(`${siteUrl}${next}`)
+            return NextResponse.redirect(`${origin}${next}`)
         }
     }
 

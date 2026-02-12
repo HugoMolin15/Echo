@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { headers } from 'next/headers'
 
 export async function login(formData: FormData) {
     const supabase = await createClient()
@@ -61,7 +62,10 @@ export async function signInWithGoogle() {
         return { error: 'Supabase configuration is missing.' }
     }
 
-    const origin = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+    const headersList = await headers()
+    const host = headersList.get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const origin = `${protocol}://${host}`
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
