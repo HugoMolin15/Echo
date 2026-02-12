@@ -7,6 +7,10 @@ import { createClient } from '@/utils/supabase/server'
 export async function login(formData: FormData) {
     const supabase = await createClient()
 
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing. Please check your environment variables.' }
+    }
+
     // type-casting here for simplicity
     const data = {
         email: formData.get('email') as string,
@@ -25,6 +29,10 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
     const supabase = await createClient()
+
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing. Please check your environment variables.' }
+    }
 
     // type-casting here for simplicity
     const data = {
