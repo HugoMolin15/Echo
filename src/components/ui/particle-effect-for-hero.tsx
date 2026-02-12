@@ -334,12 +334,12 @@ const Navigation: React.FC = () => {
             className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${isScrolled
                 ? 'bg-black/60 backdrop-blur-xl border-white/20'
                 : 'bg-white/5 backdrop-blur-sm border-white/10'
-                } border rounded-full px-6 py-3`}
+                } border rounded-full px-4 py-2 md:px-6 md:py-3`}
         >
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-4 md:gap-8">
                 {/* Logo */}
                 <a href="#" className="flex items-center cursor-pointer">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-8 md:h-8">
                         <circle cx="16" cy="16" r="15" stroke="white" strokeWidth="1.5" opacity="0.3" />
                         <circle cx="16" cy="16" r="11" stroke="white" strokeWidth="1.5" opacity="0.5" />
                         <circle cx="16" cy="16" r="7" stroke="white" strokeWidth="1.5" opacity="0.7" />
@@ -371,7 +371,7 @@ const Navigation: React.FC = () => {
                 </div>
 
                 {/* CTA Button */}
-                <button className="ml-2 px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm font-medium transition-all cursor-pointer">
+                <button className="px-3 py-1.5 text-xs md:px-5 md:py-2 md:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap">
                     Sign In
                 </button>
             </div>
