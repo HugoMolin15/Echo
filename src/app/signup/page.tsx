@@ -22,16 +22,20 @@ function SignupContent() {
             {/* Background */}
             <StarTrailCanvas enableTrail={false} />
 
-            {/* Back Button */}
-            <div className="absolute top-8 left-8 z-50">
-                <Link href="/" className="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-lg font-medium">
-                    <ArrowLeft className="w-5 h-5" />
-                    Back to Home
-                </Link>
-            </div>
+
 
             {/* Content w/ Glassmorphism Card */}
             <div className="relative z-10 w-full max-w-md p-8">
+                {/* Back Button on top of card */}
+                <div className="mb-6 flex justify-center">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white/70 hover:text-white transition-all text-sm font-medium backdrop-blur-sm"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Home
+                    </Link>
+                </div>
 
                 <div className="bg-transparent border border-white/10 rounded-3xl p-8 backdrop-blur-none shadow-none">
 
