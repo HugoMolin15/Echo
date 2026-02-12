@@ -14,13 +14,11 @@ export async function GET(request: Request) {
         }
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
+            // Priority: NEXT_PUBLIC_URL > origin
             const isLocalEnv = process.env.NODE_ENV === 'development'
-            if (isLocalEnv) {
-                // we can be sure that origin is a trusted domain for reset-password
-                return NextResponse.redirect(`${origin}${next}`)
-            } else {
-                return NextResponse.redirect(`${process.env.NEXT_PUBLIC_URL}${next}`)
-            }
+            const siteUrl = process.env.NEXT_PUBLIC_URL || origin
+
+            return NextResponse.redirect(`${siteUrl}${next}`)
         }
     }
 
