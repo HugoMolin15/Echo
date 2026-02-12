@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Link from 'next/link';
-import { login, signup, signInWithGoogle, signInWithApple } from './actions';
+import { login, signup, signInWithGoogle } from './actions';
 
 function SignupContent() {
     const searchParams = useSearchParams();
@@ -22,16 +22,6 @@ function SignupContent() {
         setIsSocialLoading('google');
         setError(null);
         const result = await signInWithGoogle();
-        if (result?.error) {
-            setError(result.error);
-            setIsSocialLoading(null);
-        }
-    }
-
-    async function handleAppleLogin() {
-        setIsSocialLoading('apple');
-        setError(null);
-        const result = await signInWithApple();
         if (result?.error) {
             setError(result.error);
             setIsSocialLoading(null);
@@ -222,20 +212,6 @@ function SignupContent() {
                             )}
                             <span className="text-sm font-medium">
                                 {isSocialLoading === 'google' ? 'Connecting...' : 'Sign in with Google'}
-                            </span>
-                        </button>
-                        <button
-                            onClick={handleAppleLogin}
-                            disabled={!!isSocialLoading}
-                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-3 transition-colors text-white cursor-pointer disabled:opacity-50"
-                        >
-                            {isSocialLoading === 'apple' ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <FaApple className="w-5 h-5" />
-                            )}
-                            <span className="text-sm font-medium">
-                                {isSocialLoading === 'apple' ? 'Connecting...' : 'Sign in with Apple'}
                             </span>
                         </button>
                     </div>

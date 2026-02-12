@@ -78,27 +78,3 @@ export async function signInWithGoogle() {
         redirect(data.url)
     }
 }
-
-export async function signInWithApple() {
-    const supabase = await createClient()
-    if (!supabase) {
-        return { error: 'Supabase configuration is missing.' }
-    }
-
-    const origin = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-            redirectTo: `${origin}/auth/callback`,
-        },
-    })
-
-    if (error) {
-        return { error: error.message }
-    }
-
-    if (data.url) {
-        redirect(data.url)
-    }
-}
