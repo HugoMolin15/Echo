@@ -7,7 +7,7 @@ import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Link from 'next/link';
 
-export default function SignupPage() {
+function SignupContent() {
     const searchParams = useSearchParams();
     const [isLogin, setIsLogin] = useState(false);
 
@@ -120,4 +120,12 @@ export default function SignupPage() {
             </div>
         </div>
     )
+}
+
+export default function SignupPage() {
+    return (
+        <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
+            <SignupContent />
+        </React.Suspense>
+    );
 }
