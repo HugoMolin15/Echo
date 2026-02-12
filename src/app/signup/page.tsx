@@ -2,19 +2,41 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { StarTrailCanvas } from '@/components/ui/star-trail-background';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Link from 'next/link';
-import { login, signup } from './actions';
+import { login, signup, signInWithGoogle, signInWithApple } from './actions';
 
 function SignupContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [isLogin, setIsLogin] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+
+    async function handleGoogleLogin() {
+        setIsSocialLoading('google');
+        setError(null);
+        const result = await signInWithGoogle();
+        if (result?.error) {
+            setError(result.error);
+            setIsSocialLoading(null);
+        }
+    }
+
+    async function handleAppleLogin() {
+        setIsSocialLoading('apple');
+        setError(null);
+        const result = await signInWithApple();
+        if (result?.error) {
+            setError(result.error);
+            setIsSocialLoading(null);
+        }
+    }
 
     useEffect(() => {
         if (searchParams.get('mode') === 'login') {
@@ -139,13 +161,26 @@ function SignupContent() {
 
                         <div>
                             <label className="block text-xs font-medium text-white/60 mb-1.5 ml-1">Password</label>
-                            <input
-                                name="password"
-                                type="password"
-                                placeholder="Password"
-                                required
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm"
-                            />
+                            <div className="relative">
+                                <input
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Password"
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm pr-11"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1 cursor-pointer"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="w-4 h-4" />
+                                    ) : (
+                                        <Eye className="w-4 h-4" />
+                                    )}
+                                </button>
+                            </div>
                             {isLogin && (
                                 <div className="mt-2 flex justify-end">
                                     <Link
@@ -175,13 +210,33 @@ function SignupContent() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-3 transition-colors text-white cursor-pointer">
-                            <FcGoogle className="w-5 h-5" />
-                            <span className="text-sm font-medium">Sign in with Google</span>
+                        <button
+                            onClick={handleGoogleLogin}
+                            disabled={!!isSocialLoading}
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-3 transition-colors text-white cursor-pointer disabled:opacity-50"
+                        >
+                            {isSocialLoading === 'google' ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <FcGoogle className="w-5 h-5" />
+                            )}
+                            <span className="text-sm font-medium">
+                                {isSocialLoading === 'google' ? 'Connecting...' : 'Sign in with Google'}
+                            </span>
                         </button>
-                        <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-3 transition-colors text-white cursor-pointer">
-                            <FaApple className="w-5 h-5" />
-                            <span className="text-sm font-medium">Sign in with Apple</span>
+                        <button
+                            onClick={handleAppleLogin}
+                            disabled={!!isSocialLoading}
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-3 transition-colors text-white cursor-pointer disabled:opacity-50"
+                        >
+                            {isSocialLoading === 'apple' ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <FaApple className="w-5 h-5" />
+                            )}
+                            <span className="text-sm font-medium">
+                                {isSocialLoading === 'apple' ? 'Connecting...' : 'Sign in with Apple'}
+                            </span>
                         </button>
                     </div>
 
