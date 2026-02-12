@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache'
 
 export async function updateProfile(formData: FormData) {
     const supabase = await createClient()
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing.' }
+    }
 
     const fullName = formData.get('full_name') as string
     const avatarUrl = formData.get('avatar_url') as string
@@ -26,6 +29,9 @@ export async function updateProfile(formData: FormData) {
 
 export async function uploadAvatar(formData: FormData) {
     const supabase = await createClient()
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing.' }
+    }
     const file = formData.get('file') as File
 
     if (!file) {

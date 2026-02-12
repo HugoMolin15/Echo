@@ -4,6 +4,9 @@ import { createClient } from '@/utils/supabase/server'
 
 export async function forgotPassword(formData: FormData) {
     const supabase = await createClient()
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing.' }
+    }
     const email = formData.get('email') as string
     const origin = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
 

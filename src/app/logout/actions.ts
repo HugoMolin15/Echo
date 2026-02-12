@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation'
 
 export async function signout() {
     const supabase = await createClient()
+    if (!supabase) {
+        redirect('/')
+    }
 
     const { error } = await supabase.auth.signOut()
 

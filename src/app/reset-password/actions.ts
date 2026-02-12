@@ -6,6 +6,9 @@ import { redirect } from 'next/navigation'
 
 export async function updatePassword(formData: FormData) {
     const supabase = await createClient()
+    if (!supabase) {
+        return { error: 'Supabase configuration is missing.' }
+    }
     const password = formData.get('password') as string
 
     const { error } = await supabase.auth.updateUser({
