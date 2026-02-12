@@ -1,324 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { ArrowRight, Sparkles, AudioWaveform, Zap, Sliders, Radio, Orbit, Code, Network, ChevronDown, Star } from 'lucide-react';
-
-// --- Types ---
-
-interface TrailStar {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    size: number;
-    life: number; // 0 to 1, starts at 1 and fades out
-    maxLife: number;
-    color: string;
-    rotation: number;
-    rotationSpeed: number;
-}
-
-interface BackgroundParticle {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    size: number;
-    alpha: number;
-    phase: number;
-}
-
-// --- Configuration Constants ---
-
-const BG_PARTICLE_DENSITY = 0.0003; // Ambient background stars (increased for more stars)
-const TRAIL_SPAWN_RATE = 0.5; // Stars spawned per frame when mouse moves (very low for sparse trail)
-const STAR_LIFE_DURATION = 100; // Frames a star lasts before fading out
-const TRAIL_SPREAD = 30; // Random spread around mouse position (wide spread)
-
-// --- Helper Functions ---
-
-const randomRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-// Draw a star shape
-const drawStar = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    size: number,
-    rotation: number,
-    opacity: number
-) => {
-    const spikes = 5;
-    const outerRadius = size;
-    const innerRadius = size * 0.5;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotation);
-    ctx.beginPath();
-
-    for (let i = 0; i < spikes * 2; i++) {
-        const radius = i % 2 === 0 ? outerRadius : innerRadius;
-        const angle = (Math.PI / spikes) * i;
-        const px = Math.cos(angle) * radius;
-        const py = Math.sin(angle) * radius;
-
-        if (i === 0) {
-            ctx.moveTo(px, py);
-        } else {
-            ctx.lineTo(px, py);
-        }
-    }
-
-    ctx.closePath();
-    ctx.globalAlpha = opacity;
-    ctx.fill();
-    ctx.restore();
-};
-
-// --- Components ---
-
-const StarTrailCanvas: React.FC = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [debugInfo, setDebugInfo] = useState({ stars: 0, fps: 0 });
-
-    // Mutable state refs to avoid re-renders during animation loop
-    const trailStarsRef = useRef<TrailStar[]>([]);
-    const backgroundParticlesRef = useRef<BackgroundParticle[]>([]);
-    const mouseRef = useRef({ x: -1000, y: -1000, prevX: -1000, prevY: -1000 });
-    const frameIdRef = useRef<number>(0);
-    const lastTimeRef = useRef<number>(0);
-
-    // Initialize Background Particles
-    const initParticles = useCallback((width: number, height: number) => {
-        const bgCount = Math.floor(width * height * BG_PARTICLE_DENSITY);
-        const newBgParticles: BackgroundParticle[] = [];
-
-        for (let i = 0; i < bgCount; i++) {
-            newBgParticles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                vx: (Math.random() - 0.5) * 0.15,
-                vy: (Math.random() - 0.5) * 0.15,
-                size: randomRange(0.5, 1.5),
-                alpha: randomRange(0.1, 0.3),
-                phase: Math.random() * Math.PI * 2
-            });
-        }
-        backgroundParticlesRef.current = newBgParticles;
-    }, []);
-
-    // Animation Loop
-    const animate = useCallback((time: number) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Calculate Delta Time
-        const delta = time - lastTimeRef.current;
-        lastTimeRef.current = time;
-        if (delta > 0) {
-            setDebugInfo(prev => ({ ...prev, fps: Math.round(1000 / delta) }));
-        }
-
-        // Clear Canvas completely
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // --- Background Effects ---
-
-        // Subtle radial glow
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const pulseOpacity = Math.sin(time * 0.0008) * 0.025 + 0.065;
-
-        const gradient = ctx.createRadialGradient(
-            centerX, centerY, 0,
-            centerX, centerY, Math.max(canvas.width, canvas.height) * 0.6
-        );
-        gradient.addColorStop(0, `rgba(139, 92, 246, ${pulseOpacity})`); // Purple glow
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Background Particles
-        const bgParticles = backgroundParticlesRef.current;
-        ctx.fillStyle = "#ffffff";
-
-        for (let i = 0; i < bgParticles.length; i++) {
-            const p = bgParticles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-
-            // Wrap around screen
-            if (p.x < 0) p.x = canvas.width;
-            if (p.x > canvas.width) p.x = 0;
-            if (p.y < 0) p.y = canvas.height;
-            if (p.y > canvas.height) p.y = 0;
-
-            // Twinkle effect
-            const twinkle = Math.sin(time * 0.002 + p.phase) * 0.5 + 0.5;
-            const currentAlpha = p.alpha * (0.3 + 0.7 * twinkle);
-
-            ctx.globalAlpha = currentAlpha;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1.0;
-
-        // --- Trail Stars ---
-
-        const mouse = mouseRef.current;
-        const trailStars = trailStarsRef.current;
-
-        // Check if mouse moved
-        const mouseDist = Math.sqrt(
-            Math.pow(mouse.x - mouse.prevX, 2) + Math.pow(mouse.y - mouse.prevY, 2)
-        );
-
-        // Spawn new stars along the trail (with probability to keep it sparse)
-        if (mouseDist > 2 && Math.random() < TRAIL_SPAWN_RATE) {
-            trailStars.push({
-                x: mouse.x + randomRange(-TRAIL_SPREAD, TRAIL_SPREAD),
-                y: mouse.y + randomRange(-TRAIL_SPREAD, TRAIL_SPREAD),
-                vx: randomRange(-0.5, 0.5),
-                vy: randomRange(-0.5, 0.5),
-                size: randomRange(3, 8),
-                life: 1,
-                maxLife: STAR_LIFE_DURATION + randomRange(-20, 20),
-                color: '#FFFFFF',  // White only
-                rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: randomRange(-0.05, 0.05)
-            });
-        }
-
-        // Update mouse position
-        mouse.prevX = mouse.x;
-        mouse.prevY = mouse.y;
-
-        // Update and draw trail stars
-        for (let i = trailStars.length - 1; i >= 0; i--) {
-            const star = trailStars[i];
-
-            // Update position
-            star.x += star.vx;
-            star.y += star.vy;
-            star.rotation += star.rotationSpeed;
-
-            // Apply slight upward drift
-            star.vy -= 0.02;
-
-            // Decay life
-            star.life -= 1 / star.maxLife;
-
-            // Remove dead stars
-            if (star.life <= 0) {
-                trailStars.splice(i, 1);
-                continue;
-            }
-
-            // Calculate opacity with easing (fade out smoothly)
-            const fadeProgress = star.life;
-            const opacity = Math.pow(fadeProgress, 2); // Quadratic easing
-
-            // Draw star
-            ctx.fillStyle = star.color;
-            drawStar(ctx, star.x, star.y, star.size, star.rotation, opacity);
-
-            // Add glow effect
-            const glowSize = star.size * 2;
-            const glowGradient = ctx.createRadialGradient(
-                star.x, star.y, 0,
-                star.x, star.y, glowSize
-            );
-            glowGradient.addColorStop(0, star.color.replace(')', `, ${opacity * 0.6})`).replace('#', 'rgba(').replace(/^rgba\(([^,]+)/, (m, hex) => {
-                const r = parseInt(hex.slice(0, 2), 16);
-                const g = parseInt(hex.slice(2, 4), 16);
-                const b = parseInt(hex.slice(4, 6), 16);
-                return `rgba(${r}, ${g}, ${b}`;
-            }));
-            glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-            ctx.fillStyle = glowGradient;
-            ctx.globalAlpha = opacity * 0.5;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-        }
-
-        setDebugInfo(prev => ({ ...prev, stars: trailStars.length }));
-
-        frameIdRef.current = requestAnimationFrame(animate);
-    }, []);
-
-    // Resize Handler
-    useEffect(() => {
-        const handleResize = () => {
-            if (containerRef.current && canvasRef.current) {
-                const { width, height } = containerRef.current.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
-
-                canvasRef.current.width = width * dpr;
-                canvasRef.current.height = height * dpr;
-
-                canvasRef.current.style.width = `${width}px`;
-                canvasRef.current.style.height = `${height}px`;
-
-                const ctx = canvasRef.current.getContext('2d');
-                if (ctx) ctx.scale(dpr, dpr);
-
-                initParticles(width, height);
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        handleResize();
-
-        return () => window.removeEventListener('resize', handleResize);
-    }, [initParticles]);
-
-    // Start Animation
-    useEffect(() => {
-        frameIdRef.current = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(frameIdRef.current);
-    }, [animate]);
-
-    // Mouse Handlers
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        mouseRef.current.x = e.clientX - rect.left;
-        mouseRef.current.y = e.clientY - rect.top;
-    };
-
-    const handleMouseLeave = () => {
-        mouseRef.current.x = -1000;
-        mouseRef.current.y = -1000;
-    };
-
-    return (
-        <div
-            ref={containerRef}
-            className="fixed inset-0 z-0 overflow-hidden bg-black pointer-events-none"
-        >
-            <canvas
-                ref={canvasRef}
-                className="block w-full h-full"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-                style={{ pointerEvents: 'auto' }}
-            />
+import { ArrowRight, Sparkles, AudioWaveform, Zap, Sliders, Radio, Orbit, Code, Network, ChevronDown, Star, Menu, X } from 'lucide-react';
+import { StarTrailCanvas } from './star-trail-background';
 
 
-        </div>
-    );
-};
 
 const Navigation: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -331,15 +20,15 @@ const Navigation: React.FC = () => {
 
     return (
         <nav
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${isScrolled
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${isScrolled || isMenuOpen
                 ? 'bg-black/60 backdrop-blur-xl border-white/20'
                 : 'bg-white/5 backdrop-blur-sm border-white/10'
-                } border rounded-full px-4 py-2 md:px-6 md:py-3`}
+                } border rounded-full px-4 py-2 lg:px-6 lg:py-3`}
         >
-            <div className="flex items-center gap-4 md:gap-8">
+            <div className="flex items-center gap-2 lg:gap-8 justify-start">
                 {/* Logo */}
-                <a href="#" className="flex items-center cursor-pointer">
-                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-8 md:h-8">
+                <a href="#" className="flex items-center cursor-pointer shrink-0">
+                    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
                         <circle cx="16" cy="16" r="15" stroke="white" strokeWidth="1.5" opacity="0.3" />
                         <circle cx="16" cy="16" r="11" stroke="white" strokeWidth="1.5" opacity="0.5" />
                         <circle cx="16" cy="16" r="7" stroke="white" strokeWidth="1.5" opacity="0.7" />
@@ -348,8 +37,8 @@ const Navigation: React.FC = () => {
                     </svg>
                 </a>
 
-                {/* Navigation Links */}
-                <div className="hidden md:flex items-center gap-6">
+                {/* Desktop Navigation Links */}
+                <div className="hidden lg:flex items-center gap-6 whitespace-nowrap">
                     <a
                         onClick={(e) => {
                             e.preventDefault();
@@ -368,13 +57,65 @@ const Navigation: React.FC = () => {
                     >
                         Pricing
                     </a>
+                    <a
+                        href="/signup"
+                        className="text-white/70 hover:text-white transition-colors text-sm font-medium cursor-pointer"
+                    >
+                        Sign Up
+                    </a>
                 </div>
 
-                {/* CTA Button */}
-                <button className="px-3 py-1.5 text-xs md:px-5 md:py-2 md:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap">
-                    Sign In
+                {/* Desktop CTA Button */}
+                <a href="/signup?mode=login" className="hidden lg:block px-3 py-1.5 text-xs lg:px-5 lg:py-2 lg:text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer whitespace-nowrap">
+                    Login
+                </a>
+
+                {/* Mobile Menu Button */}
+                <button
+                    className="lg:hidden px-4 py-2 text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all cursor-pointer ml-2"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                    {isMenuOpen ? 'Close' : 'Menu'}
                 </button>
             </div>
+
+            {/* Mobile Menu Dropdown */}
+            {isMenuOpen && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 mt-2 bg-black border border-white/20 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 lg:hidden">
+                    <a
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                            setIsMenuOpen(false);
+                        }}
+                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                    >
+                        Features
+                    </a>
+                    <a
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                            setIsMenuOpen(false);
+                        }}
+                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                    >
+                        Pricing
+                    </a>
+                    <a
+                        href="/signup"
+                        className="text-white/80 hover:text-white text-lg font-medium cursor-pointer py-2 border-b border-white/10"
+                    >
+                        Sign Up
+                    </a>
+                    <a
+                        href="/signup?mode=login"
+                        className="text-center w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold transition-all cursor-pointer mt-2 hover:bg-white/20"
+                    >
+                        Login
+                    </a>
+                </div>
+            )}
         </nav>
     )
 }
@@ -398,10 +139,12 @@ const HeroContent: React.FC = () => {
                 </p>
 
                 <div className="pt-8 pointer-events-auto">
-                    <button className="group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-full font-bold tracking-wide overflow-hidden transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+                    <button
+                        onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-full font-bold tracking-wide overflow-hidden transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg hover:shadow-purple-500/25 border border-transparent hover:bg-white/5 hover:border-purple-500/50 hover:text-white hover:backdrop-blur-sm"
+                    >
                         <span className="relative z-10">Start Composing</span>
                         <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-                        <div className="absolute inset-0 bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out opacity-10"></div>
                     </button>
                 </div>
             </div>
@@ -500,7 +243,8 @@ const PricingSection: React.FC = () => {
                 "Community support",
                 "MIT License"
             ],
-            highlighted: false
+            highlighted: false,
+            priceId: null // Free plan
         },
         {
             name: "Studio",
@@ -514,7 +258,8 @@ const PricingSection: React.FC = () => {
                 "Commercial license",
                 "Custom integrations"
             ],
-            highlighted: true
+            highlighted: true,
+            priceId: "price_1T04DGBGlSaTz3zHT6Pi9Eew"
         },
         {
             name: "Galaxy",
@@ -527,9 +272,34 @@ const PricingSection: React.FC = () => {
                 "SLA guarantee",
                 "Training & onboarding"
             ],
-            highlighted: false
+            highlighted: false,
+            priceId: null // Contact sales
         }
     ];
+
+    const handleCheckout = async (priceId: string) => {
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ priceId }),
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                console.error("Checkout error:", data.error);
+                alert("Failed to start checkout. Please check console for details.");
+            }
+        } catch (error) {
+            console.error("Checkout error:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
 
     return (
         <section id="pricing" className="relative z-10 pt-24 pb-20 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 px-4 bg-transparent">
@@ -580,12 +350,23 @@ const PricingSection: React.FC = () => {
                             </div>
 
                             <button
-                                className={`w-full py-4 rounded-full font-bold transition-all cursor-pointer mt-auto ${plan.highlighted
-                                    ? 'bg-white text-black hover:bg-white/90'
-                                    : 'bg-white/10 text-white hover:bg-white/20'
+                                onClick={() => {
+                                    if (plan.price === '$0') {
+                                        window.location.href = '/signup';
+                                    } else if (plan.price === 'Contact Sales') {
+                                        window.location.href = 'mailto:sales@echo.com';
+                                    } else if (plan.priceId) {
+                                        handleCheckout(plan.priceId);
+                                    }
+                                }}
+                                className={`group relative w-full py-4 rounded-full font-bold transition-all cursor-pointer mt-auto overflow-hidden border border-transparent ${plan.highlighted
+                                    ? 'bg-white text-black shadow-lg hover:shadow-purple-500/25 hover:bg-white/5 hover:border-purple-500/50 hover:text-white hover:backdrop-blur-sm'
+                                    : 'bg-white/10 text-white hover:bg-white/20 hover:border-white/20'
                                     }`}
                             >
-                                {plan.price === 'Contact Sales' ? 'Contact Sales' : 'Get Started'}
+                                <span className="relative z-10">
+                                    {plan.price === 'Contact Sales' ? 'Contact Sales' : 'Get Started'}
+                                </span>
                             </button>
                         </div>
                     ))}
@@ -869,9 +650,9 @@ const FinalCTA: React.FC = () => {
                 <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-12">
                     The future of sound is spatial.
                 </h2>
-                <button className="px-10 py-5 bg-white text-black rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/20 cursor-pointer">
-                    Get Started for Free
-                </button>
+                <a href="/signup" className="group relative inline-block px-10 py-5 bg-white text-black rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/20 hover:shadow-purple-500/40 cursor-pointer overflow-hidden border border-transparent hover:bg-white/5 hover:border-purple-500/50 hover:text-white hover:backdrop-blur-sm">
+                    <span className="relative z-10">Get Started for Free</span>
+                </a>
             </div>
         </section>
     );
@@ -1096,7 +877,18 @@ const Footer: React.FC = () => {
                             <ul className="space-y-3">
                                 {links.map((link) => (
                                     <li key={link}>
-                                        <a href="#" className="text-white/60 hover:text-white transition-colors text-sm cursor-pointer">
+                                        <a
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (link === 'Features') {
+                                                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                                                } else if (link === 'Pricing') {
+                                                    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                                                }
+                                            }}
+                                            href="#"
+                                            className="text-white/60 hover:text-white transition-colors text-sm cursor-pointer"
+                                        >
                                             {link}
                                         </a>
                                     </li>
@@ -1112,15 +904,6 @@ const Footer: React.FC = () => {
                         <p className="text-white/40 text-sm">
                             © 2026. All rights reserved.
                         </p>
-                        <div className="flex items-center gap-2 text-sm">
-                            <div className="relative">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-                            </div>
-                            <span className="text-white/60">System Status: <span className="text-green-400">All Nodes Operational</span></span>
-                            <span className="text-white/30">|</span>
-                            <span className="text-white/60">Latency: <span className="text-purple-400">12ms</span></span>
-                        </div>
                     </div>
                     <div className="flex gap-6 text-sm text-white/40">
                         <a href="#" className="hover:text-white transition-colors cursor-pointer">Privacy Policy</a>
