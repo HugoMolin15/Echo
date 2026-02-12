@@ -389,7 +389,7 @@ const HeroContent: React.FC = () => {
                     </span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl lg:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference">
+                <h1 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference">
                     Echo
                 </h1>
 
@@ -454,7 +454,7 @@ const BentoGrid: React.FC = () => {
     ];
 
     return (
-        <section id="features" className="relative z-10 pt-24 pb-20 md:pt-40 md:pb-32 px-4 bg-transparent">
+        <section id="features" className="relative z-10 pt-24 pb-20 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 px-4 bg-transparent">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-6">
@@ -532,7 +532,7 @@ const PricingSection: React.FC = () => {
     ];
 
     return (
-        <section id="pricing" className="relative z-10 pt-24 pb-20 md:pt-40 md:pb-32 px-4 bg-transparent">
+        <section id="pricing" className="relative z-10 pt-24 pb-20 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 px-4 bg-transparent">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-6 pb-2">
@@ -605,7 +605,7 @@ const PerformanceMetrics: React.FC = () => {
     ];
 
     return (
-        <section className="relative z-10 py-16 md:py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-16 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                     {metrics.map((metric, idx) => (
@@ -623,7 +623,7 @@ const PerformanceMetrics: React.FC = () => {
                             <div className="relative text-center py-12 px-8">
                                 {/* Metric Value */}
                                 <div className="relative inline-block mb-4">
-                                    <h3 className="text-4xl md:text-7xl font-bold relative animate-pulse-slow bg-gradient-to-b from-white via-cyan-400 via-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient"
+                                    <h3 className="text-4xl md:text-5xl lg:text-7xl font-bold relative animate-pulse-slow bg-gradient-to-b from-white via-cyan-400 via-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient"
                                         style={{
                                             backgroundSize: '100% 200%',
                                             filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.2)) drop-shadow(0 0 30px rgba(34, 211, 238, 0.15)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.25))'
@@ -682,7 +682,7 @@ const PerformanceMetrics: React.FC = () => {
 
 const SpatialComparison: React.FC = () => {
     return (
-        <section className="relative z-10 py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-6 pb-2">
@@ -750,7 +750,7 @@ const SpatialComparison: React.FC = () => {
 
 const CodePlayground: React.FC = () => {
     return (
-        <section className="relative z-10 py-20 md:py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-6 pb-2">
@@ -842,7 +842,7 @@ const IntegrationEcosystem: React.FC = () => {
     const integrations = ['React', 'Three.js', 'Next.js', 'WebGL', 'Vite'];
 
     return (
-        <section className="relative z-10 py-20 md:py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-5xl mx-auto text-center">
                 <p className="text-xl text-white/60 mb-12">
                     Fits into your existing workflow.
@@ -864,9 +864,9 @@ const IntegrationEcosystem: React.FC = () => {
 
 const FinalCTA: React.FC = () => {
     return (
-        <section className="relative z-10 py-20 md:py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-12">
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-12">
                     The future of sound is spatial.
                 </h2>
                 <button className="px-10 py-5 bg-white text-black rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/20 cursor-pointer">
@@ -926,7 +926,7 @@ const TestimonialsSection: React.FC = () => {
     ];
 
     return (
-        <section className="relative z-10 py-20 md:py-32 bg-transparent overflow-hidden">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 bg-transparent overflow-hidden">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-6">
@@ -1018,7 +1018,7 @@ const FAQSection: React.FC = () => {
     ];
 
     return (
-        <section className="relative z-10 py-20 md:py-32 px-4 bg-transparent">
+        <section className="relative z-10 py-20 md:py-24 lg:py-32 px-4 bg-transparent">
             <div className="max-w-3xl mx-auto">
                 <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mix-blend-difference mb-12 text-center">
                     Common Questions
